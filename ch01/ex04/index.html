@@ -3,9 +3,11 @@
   <body>
     <script>
       let life = { answer: 42 };
-      console.log(life);
+      console.log(life); // これだけでは参照を渡しちゃってる
+      console.log(life.answer); // この時の中身の値を出力する
       life.answer = 0;
       console.log(life);
+      console.log(life.answer);
     </script>
   </body>
 </html>

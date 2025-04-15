@@ -1,7 +1,8 @@
 /* eslint-disable */
-for (let i = 0; i < 10; i++) {
+//"use strict";
+for ( i = 0; i < 10; i++) {
     (function () {
-      let i = 100;
+       i = 100;
     })();
     console.log(i);
   }
