@@ -84,3 +84,27 @@ for (let key in obj) {
 
 console.log("Object.keys:", Object.keys(obj)); // []
 
+
+
+----
+// 出力結果
+// PS C:\JS_training\js-exercises> node .\ch06\ex04\index.js
+// 初期値: 500
+// 書き換え後: 200
+// 削除後: undefined
+// 再定義後: 300
+// hasOwnProperty: true
+// propertyIsEnumerable: true
+// for...in 結果:
+// x
+// Object.keys: [ 'x' ]
+// 属性変更後値: 100
+// 書き換えエラー: Cannot assign to read only property 'x' of object '#<Object>'
+// 書き換え後: 100
+// 削除エラー: Cannot delete property 'x' of #<Object>
+// 削除後: 100
+// 再定義エラー: Cannot redefine property: x
+// hasOwnProperty: true
+// propertyIsEnumerable: false
+// for...in 結果:
+// Object.keys: []

@@ -26,7 +26,7 @@ const obj = Object.create(proto, {
   2: { value: 'オブジェクトの数値プロパティ2（非同名）', enumerable: true },
   'z': { value: 'オブジェクトの文字列プロパティz（同名）', enumerable: true },
   'b': { value: 'オブジェクトの文字列プロパティb（非同名）', enumerable: true },
-  nonEnumerableProp: { value: 'オブジェクトの列挙不可プロパティ（同名）', enumerable: false }
+  enumerableProp: { value: 'オブジェクトの列挙不可プロパティ（同名）', enumerable: false }
 });
 
 for (const key in obj) {
@@ -39,11 +39,10 @@ for (const key in obj) {
 // b: オブジェクトの文字列プロパティb（非同名）
 // 1: プロトタイプの数値プロパティ1
 // a: プロトタイプの文字列プロパティa
-// enumerableProp: プロトタイプの列挙可能プロパティ
 
 // プロパティ列挙順
 // 1. 自分の数値キー（昇順）
 // 2. 自分の文字列キー（定義順）
 // 3. プロトタイプの数値キー（昇順）
 // 4. プロトタイプの文字列キー（定義順）
-// 注意: `enumerable: false` なプロパティは出力されない
+// ※ `enumerable: false` としたプロパティは出力されない
