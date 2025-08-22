@@ -105,5 +105,6 @@ const testdata = [
 
 test.each(testdata)("stringifyJSON(%s)", (s) => {
   const json = JSON.parse(s);
+  console.log(stringifyJSON(json));
   expect(stringifyJSON(json)).toStrictEqual(JSON.stringify(json));
 });
