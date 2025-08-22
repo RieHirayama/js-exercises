@@ -20,3 +20,24 @@
 4. performance.now() の分解能とオーバーヘッドの支配
    1回の `str.length` は 極めて短い（ナノ秒〜数十ナノ秒級）が、これを ミリ秒〜マイクロ秒分解能の `performance.now()` で測り、しかも 2回の測定の差を取ると、測定誤差が支配的になる。
    また、 `performance.now()` 自体の呼び出しオーバーヘッドも無視できない。
+
+# 結果
+
+console.log(costOfLength(100));
+console.log(costOfLength(1000));
+console.log(costOfLength(10000));
+console.log(costOfLength(100000));
+console.log(costOfLength(1000000));
+console.log(costOfLength(10000000));
+console.log(costOfLength(100000000));
+console.log(costOfLength(200000000));
+
+PS C:\JS_training\js-exercises> node .\ch11\ex11\index.js
+0.0007629999999999982
+-0.0000010000000000012222
+-0.000026359999999999673
+0.0000015639999999999788
+0.0000029495999999999967
+3.830000000000666e-9
+4.562999999999917e-9
+9.154000000000125e-9
