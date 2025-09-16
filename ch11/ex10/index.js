@@ -38,7 +38,7 @@ export function firstDayOfPreviousMonthLocal() {
   const d = new Date();
   d.setHours(0, 0, 0, 0); // 当日 0:00:00
   d.setDate(1);           // 今月1日
-  d.setDate(0);           // 前月の最終日（今月1日の 0 日前）
+  d.setDate(0);           // 前月の最終日（今月1日の 0 日前）// 日付だけが0以下になった時点で前月に繰り下がる
   d.setDate(1);           // その月の1日
   return d;
 }

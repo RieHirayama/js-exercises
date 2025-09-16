@@ -14,6 +14,8 @@ export class FileTooLargeError extends Error {
     this.path = path;
     this.size = size;
     this.limit = limit;
+
+    // V8エンジン（Node.jsなど）でスタックトレースをきれいにするための処理
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, FileTooLargeError);
     }
