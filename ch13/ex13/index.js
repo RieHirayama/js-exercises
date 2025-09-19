@@ -26,3 +26,24 @@ export async function* walk(rootPath) {
   // ルート直下から開始（※rootは返さない）
   yield* walkDir(rootPath);
 }
+
+
+// walkDir ヘルパ関数を使わず、walk 関数だけで再帰処理を直接書くともっとシンプルに書ける
+export async function* walkSimple(rootPath) {
+  const entries = await readdir(rootPath, { withFileTypes: true });
+  entries.sort((a, b) => a.name.localeCompare(b.name, "en"));
+
+  for (const ent of entries) {
+    const p = join(rootPath, ent.name);
+
+    if (ent.isDirectory()) {
+      yield { path: p, isDirectory: true };
+      for await (const sub of walkSimple(p)) {
+        yield sub;
+      }
+    } else if (ent.isFile()) {
+      yield { path: p, isDirectory: false };
+    }
+    // その他は無視
+  }
+}
