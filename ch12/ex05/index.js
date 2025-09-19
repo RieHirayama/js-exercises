@@ -3,10 +3,10 @@
 import fs from 'node:fs';
 
 export function* readLines(filePath, options = {}) {
-  const bufferSize = options.bufferSize ?? 16 * 1024;
+  const bufferSize = options.bufferSize ?? 16 * 1024;  // バッファサイズは一旦16KB
   const fd = fs.openSync(filePath, 'r');
   const decoder = new TextDecoder('utf-8');
-  const buf = Buffer.allocUnsafe(bufferSize);
+  const buf = Buffer.allocUnsafe(bufferSize); //バッファサイズ分のバッファ確保
 
   let carry = ''; // 次の読み込みに持ち越し
 
