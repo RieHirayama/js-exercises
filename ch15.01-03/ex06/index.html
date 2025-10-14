@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>あなたを監視中</title>
+  </head>
+  <body>
+    <h2>あなたを監視中</h2>
+    <p>あなたは以下のPCを通して監視されています！</p>
+    <div id="props-list">
+      <!-- ここにJSで挿入 -->
+    </div>
+    <script>
+      const info = {
+        "userAgent": navigator.userAgent || "（未定義）",
+        "platform": navigator.platform || "（未定義）",
+        "vendor": navigator.vendor || "（未定義）",
+        "cookieEnabled": navigator.cookieEnabled === undefined ? "（未定義）" : navigator.cookieEnabled,
+        "onLine": navigator.onLine === undefined ? "（未定義）" : (navigator.onLine ? "online" : "offline"),
+        "connection": navigator.connection || navigator.mozConnection || navigator.webkitConnection || "（未定義）",
+        "ip": "（非表示）"
+      };
+
+      // 1行ずつ「プロパティ: 値」形式で表示
+      const lines = Object.entries(info).map(([key, value]) => `${key}: ${value}`);
+      document.getElementById("props-list").innerHTML = lines.join("<br>");
+    </script>
+  </body>
+</html>
+

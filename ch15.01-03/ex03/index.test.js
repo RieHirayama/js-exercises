@@ -1,0 +1,1 @@
+※手動でVSCode Live Serverで確認実施。

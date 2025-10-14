@@ -1,0 +1,4 @@
+{
+  "name": "Taro. <img src=x onerror=\"alert('XSS')\">",
+  "age": 50
+}
