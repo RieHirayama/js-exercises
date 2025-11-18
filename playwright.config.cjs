@@ -15,3 +15,25 @@ export default defineConfig({
   workers: 1,
   maxFailures: 1,
 });
+
+// import { defineConfig } from "@playwright/test";
+
+// export default defineConfig({
+// testDir: ".",
+// testMatch: /(.+\.)?spec\.[jt]s/,
+
+// use: {
+// headless: true,
+// launchOptions: { ignoreDefaultArgs: ["--disable-extensions"] },
+// baseURL: "[http://localhost:3000](http://localhost:3000/)",
+// },
+
+// webServer: {
+// command: "npx http-server . -p 3000",
+// port: 3000,
+// reuseExistingServer: true,
+// },
+
+// workers: 1,
+// maxFailures: 1,
+// });

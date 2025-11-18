@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <title>Simple ToDo</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <script type="module" src="/ch15.04-10/ex02/index.js"></script>
+    <!-- 以下の style.css は Tailwind CLI によって生成される -->
+    <!-- html または js を変更した場合は README.md に従い Tailwind CLI を実行し style.css を再度生成すること -->
+    <link rel="stylesheet" href="/ch15.04-10/ex02/style.css" />
+  </head>
+  <!-- IMPORTANT: ChatGPT にはここから下の内容しか変更させないこと -->
+  <body
+    class="min-h-screen bg-[radial-gradient(circle_at_top,_#f2e9df_0,_#f7f2ea_35%,_#efe4d7_100%)] flex items-start justify-center py-10 px-4 text-slate-700"
+  >
+    <!-- ノート全体のラッパー -->
+    <div class="relative w-full max-w-xl">
+      <!-- ノートの1ページ（罫線＋左のインデックス帯） -->
+      <div
+        class="pointer-events-none absolute inset-0 -z-10 rounded-2xl bg-[#fcf8f2] shadow-2xl opacity-70 mix-blend-multiply bg-[linear-gradient(to_right,_#e2c5b7_80px,_transparent_80px),repeating-linear-gradient(to_bottom,_transparent_0,_transparent_26px,_rgba(204,188,165,0.7)_26px,_rgba(204,188,165,0.7)_27px)]"
+      ></div>
+
+      <!-- 入力フォーム（ノートの上部に置いたバー） -->
+      <form
+        id="new-todo-form"
+        class="mt-4 flex items-center gap-2 rounded-full bg-[rgba(252,248,242,0.96)] px-6 pl-24 py-2 shadow-md relative"
+      >
+        <!-- 小さなラベル：Today’s Notes -->
+        <span
+          class="absolute -top-5 left-24 rounded-full border border-[rgba(169,145,122,0.5)] bg-[rgba(252,248,242,0.98)] px-3 py-0.5 text-[0.8rem] tracking-[0.15em] uppercase text-[#6a5a4c] font-semibold"
+        >
+          TODAY'S NOTES
+        </span>
+
+        <!-- ToDo入力欄 -->
+        <input
+          type="text"
+          id="new-todo"
+          placeholder="What needs to be done?"
+          class="flex-1 rounded-full border border-[#cabaa7] bg-white/90 px-3 py-2 text-sm outline-none transition focus:border-slate-500 focus:bg-white focus:ring-2 focus:ring-slate-300 placeholder:text-slate-400"
+        />
+
+        <!-- 万年筆イメージのAddボタン -->
+        <button
+          type="submit"
+          class="inline-flex items-center gap-1 rounded-full bg-gradient-to-br from-slate-400 via-slate-500 to-slate-700 px-4 py-2 text-sm font-semibold text-slate-50 shadow-md transition hover:brightness-105 hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:shadow"
+        >
+          <span class="text-base">🖋</span>
+          <span>Add</span>
+        </button>
+      </form>
+
+      <!-- ノート本文部分（ToDoリスト） -->
+      <ul
+        id="todo-list"
+        class="mt-6 mb-4 list-none rounded-2xl bg-[rgba(252,248,242,0.94)] px-6 pl-24 pb-6 pt-2 shadow-xl backdrop-blur-sm space-y-1"
+      >
+        <!-- NOTE: 以下のような要素を JavaScript で動的に追加する
+        <li class="completed">
+          <div class="view">
+            <input class="toggle" type="checkbox" checked />
+            <label class="content">研修の予習範囲を読む</label>
+            <button class="destroy"></button>
+          </div>
+        </li>
+        <li>
+          <div class="view">
+            <input class="toggle" type="checkbox" />
+            <label class="content">研修の練習問題を完了する</label>
+            <button class="destroy"></button>
+          </div>
+        </li>
+        -->
+      </ul>
+
+      <template id="todo-template">
+        <li class="group py-1">
+          <div class="view flex items-center gap-3 px-1">
+            <input
+              class="toggle h-4 w-4 cursor-pointer accent-slate-600"
+              type="checkbox"
+            />
+            <label
+              class="content flex-1 text-sm leading-relaxed transition-colors"
+            ></label>
+            <button
+              class="destroy text-xs text-rose-300 opacity-0 transition group-hover:opacity-80 hover:text-rose-500"
+            >
+              ❌
+            </button>
+          </div>
+        </li>
+      </template>
+    </div>
+    <!-- Tailwind に完了時のクラスを認識させるためのダミー要素（非表示）※取り消し線が出なかったので -->
+    <span class="hidden line-through text-slate-400 italic opacity-75">
+      sample
+    </span>
+  </body>
+</html>

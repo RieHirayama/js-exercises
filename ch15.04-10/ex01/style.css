@@ -1,0 +1,252 @@
+/* 全要素のbox-sizingをborder-boxにして、余白計算をしやすくする */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* htmlとbodyの余白をリセットする */
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* 画面全体の背景やレイアウトを設定 */
+body {
+  min-height: 100vh;
+  font-family: "Yomogi", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  color: #3f4347;
+  background:
+    linear-gradient(135deg, #f2e9df 0%, #f7f2ea 35%, #efe4d7 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 16px;
+}
+
+/* 画面全体にノートの罫線と左側のインデックス帯を重ねて描画する */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  /* 左に余白、全体に横罫線 */
+  background-image:
+    linear-gradient(to right, #e2c5b7 80px, transparent 80px),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 26px,
+      rgba(204, 188, 165, 0.7) 26px,
+      rgba(204, 188, 165, 0.7) 27px
+    );
+  opacity: 0.6;
+  mix-blend-mode: multiply;
+  z-index: -1;
+}
+
+/* フォームとリスト全体の最大幅をそろえ、中央に配置できるようにする */
+#new-todo-form,
+#todo-list {
+  width: min(540px, 100%);
+}
+
+/* 入力フォーム全体のカード状のバーを作る */
+#new-todo-form {
+  margin: 12px auto 0;
+  padding: 10px 20px;
+  padding-left: 96px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: rgba(252, 248, 242, 0.96);
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(151, 132, 110, 0.18);
+  position: relative;
+}
+
+/* フォーム上部に表示する「TODAY'S NOTES」のラベルデザインを指定する */
+#new-todo-form::before {
+  content: "TODAY'S NOTES";
+  position: absolute;
+  top: -22px;
+  left: 100px;
+  padding: 2px 10px;
+  font-family: "Sacramento", cursive;
+  font-size: 1.2rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6a5a4c;
+  border-radius: 999px;
+  border: 1px solid rgba(169, 145, 122, 0.5);
+  background-color: rgba(252, 248, 242, 0.98);
+}
+
+/* ToDo入力欄の見た目（丸み・枠線・フォーカス時のハイライト）を整える */
+#new-todo {
+  flex: 1;
+  border-radius: 999px;
+  border: 1px solid #cabaa7;
+  padding: 8px 12px;
+  font-size: 0.95rem;
+  background-color: rgba(255, 255, 255, 0.95);
+  outline: none;
+  color: #3f4347;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease,
+    background-color 0.18s ease;
+}
+
+/* 入力欄プレースホルダーテキストの色を少し薄く設定する */
+#new-todo::placeholder {
+  color: #b2a89b;
+}
+
+/* 入力欄フォーカス時の枠線色と影を設定する */
+#new-todo:focus {
+  border-color: #7f8c9c;
+  box-shadow: 0 0 0 2px rgba(127, 140, 156, 0.2);
+  background-color: #fffdf9;
+}
+
+/* Addボタン全体のスタイルを設定する */
+#new-todo-form button {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-family: "Sacramento", cursive;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #8b9bb5, #5e748e);
+  color: #fdfaf5;
+  box-shadow: 0 4px 10px rgba(76, 90, 110, 0.35);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.15s ease;
+}
+
+/* Addボタンの左側に表示する万年筆アイコンを指定する */
+#new-todo-form button::before {
+  content: "🖋";
+  font-size: 0.95rem;
+}
+
+/* Addボタンのホバー時の明るさと浮き上がる動きを指定する */
+#new-todo-form button:hover {
+  filter: brightness(1.03);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(76, 90, 110, 0.4);
+}
+
+/* Addボタンのクリック時に少し沈み込むような動きを指定する */
+#new-todo-form button:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 7px rgba(76, 90, 110, 0.35);
+}
+
+/* ToDoリスト全体のカードの見た目を整える */
+#todo-list {
+  list-style: none;
+  margin: 16px auto 0;
+  padding: 8px 20px 32px;
+  padding-left: 96px;
+  background: rgba(252, 248, 242, 0.94);
+  border-radius: 18px;
+  box-shadow: 0 18px 35px rgba(131, 111, 92, 0.35);
+  backdrop-filter: blur(2px);
+}
+
+/* 各ToDo行の上下余白を指定して、行間を整える */
+#todo-list li {
+  padding: 4px 0;
+}
+
+/* 1つのToDo行内でチェックボックス・テキスト・削除ボタンを横並びにする */
+.view {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 6px;
+}
+
+/* チェックボックスのサイズやカーソル、アクセントカラーを設定する */
+.toggle {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #5b728d;
+  flex-shrink: 0;
+}
+
+/* ToDo本文テキストのフォントサイズや行間、折り返し方を設定する */
+.content {
+  flex: 1;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #3f4347;
+  word-break: break-word;
+}
+
+/* 削除ボタン（×）の見た目 */
+.destroy {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 4px 6px;
+  border-radius: 999px;
+  color: #b7948b;
+  opacity: 0.35;
+  transition: background-color 0.15s ease, opacity 0.15s ease,
+    transform 0.1s ease;
+}
+
+/* 削除ボタンにマウスを乗せたときの背景色と浮き上がり具合を指定する */
+.destroy:hover {
+  background-color: rgba(190, 155, 141, 0.16);
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* 削除ボタンをクリックしたときに少し沈み込むような動きを指定する */
+.destroy:active {
+  transform: translateY(0);
+}
+
+/* 完了済みToDoのテキスト装飾や色合いを変更して区別する */
+.completed .content {
+  text-decoration: line-through;
+  color: #9b9186;
+  opacity: 0.9;
+  font-style: italic;
+}
+
+/* 完了済みToDoのチェックボックス色を少し明るいブルーグレーにする */
+.completed .toggle {
+  accent-color: #8b9bb5;
+}
+
+/* スマホ幅のときの余白調整など、レスポンシブ対応を行う */
+@media (max-width: 480px) {
+  /* スマホではbodyの左右余白を少し小さくする */
+  body {
+    padding: 24px 10px;
+  }
+
+  /* スマホでは入力フォームの左余白を少しだけ小さくする */
+  #new-todo-form {
+    padding-left: 80px;
+  }
+
+  /* スマホでは見出しラベルの位置も合わせて左に寄せる */
+  #new-todo-form::before {
+    left: 84px;
+  }
+
+  /* スマホではToDoリストの左余白もフォームに合わせて調整する */
+  #todo-list {
+    padding-left: 80px;
+  }
+}
