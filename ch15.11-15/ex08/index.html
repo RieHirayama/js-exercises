@@ -1,0 +1,162 @@
+<!-- 3.リクエストの送信とレスポンスの確認が可能な Web ページを作成しなさい
+   - リクエスト本文の入力欄を複数用意し、ボタン押下時に `sendRequest` 関数でを同時にリクエストを送信するできるようにすること。
+   - 時間内にレスポンスが返った場合はレスポンス本文を、エラーまたはタイムアウトが発生した場合はその内容を、対応するリクエスト入力欄の横または下に表示すること。 -->
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WS Request/Response Demo</title>
+  <style>
+    body { font-family: sans-serif; padding: 16px; }
+    .row { display: grid; grid-template-columns: 1fr auto 1.5fr; gap: 8px; align-items: center; margin-bottom: 10px; }
+    input { padding: 8px; }
+    button { padding: 8px 12px; }
+    .out { padding: 8px; border: 1px solid #ccc; min-height: 18px; }
+    .err { color: #b00020; }
+  </style>
+</head>
+<body>
+  <h1>WebSocket sendRequest</h1>
+
+  <div class="row">
+    <input id="in1" value="World" />
+    <button data-send="1">Send</button>
+    <div id="out1" class="out"></div>
+  </div>
+
+  <div class="row">
+    <input id="in2" value="RICOH" />
+    <button data-send="2">Send</button>
+    <div id="out2" class="out"></div>
+  </div>
+
+  <div class="row">
+    <input id="in3" value="JS" />
+    <button data-send="3">Send</button>
+    <div id="out3" class="out"></div>
+  </div>
+
+  <button id="sendAll">Send All (parallel)</button>
+
+  <script type="module">
+    const WS_URL = "ws://localhost:3003";
+    const TIMEOUT_MS = 7000;
+
+    // ---- リクエスト ----
+    const reqWs = new WebSocket(WS_URL);
+    const pending = new Map();
+
+    reqWs.addEventListener("message", (ev) => {
+      let msg;
+      try { msg = JSON.parse(ev.data); } catch { return; }
+      if (msg?.type !== "res" || typeof msg.id !== "string") return;
+
+      const p = pending.get(msg.id);
+      if (!p) return;
+      clearTimeout(p.timer);
+      pending.delete(msg.id);
+      p.resolve(String(msg.body ?? ""));
+    });
+
+    function rejectAll(reason) {
+      for (const [id, p] of pending) {
+        clearTimeout(p.timer);
+        p.reject(reason);
+        pending.delete(id);
+      }
+    }
+
+    reqWs.addEventListener("close", () => rejectAll(new Error("WebSocket disconnected")));
+    reqWs.addEventListener("error", () => rejectAll(new Error("WebSocket error")));
+
+    function waitWsOpen(ws) {
+      if (ws.readyState === WebSocket.OPEN) return Promise.resolve();
+      if (ws.readyState === WebSocket.CLOSING || ws.readyState === WebSocket.CLOSED) {
+        return Promise.reject(new Error("WebSocket is not open"));
+      }
+      return new Promise((resolve, reject) => {
+        const onOpen = () => { cleanup(); resolve(); };
+        const onClose = () => { cleanup(); reject(new Error("WebSocket disconnected")); };
+        const onError = () => { cleanup(); reject(new Error("WebSocket error")); };
+        const cleanup = () => {
+          ws.removeEventListener("open", onOpen);
+          ws.removeEventListener("close", onClose);
+          ws.removeEventListener("error", onError);
+        };
+        ws.addEventListener("open", onOpen);
+        ws.addEventListener("close", onClose);
+        ws.addEventListener("error", onError);
+      });
+    }
+
+    function newId() {
+      return `${Date.now()}-${crypto.getRandomValues(new Uint32Array(1))[0]}`;
+    }
+
+    async function sendRequest(body) {
+      await waitWsOpen(reqWs);
+
+      const id = newId();
+      const payload = { type: "req", id, body: String(body) };
+
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+          pending.delete(id);
+          reject(new Error("Timeout"));
+        }, TIMEOUT_MS);
+
+        pending.set(id, { resolve, reject, timer });
+
+        try {
+          reqWs.send(JSON.stringify(payload));
+        } catch (e) {
+          clearTimeout(timer);
+          pending.delete(id);
+          reject(e instanceof Error ? e : new Error(String(e)));
+        }
+      });
+    }
+
+    // ---- レスポンス（別接続）----
+    const resWs = new WebSocket(WS_URL);
+    resWs.addEventListener("message", (ev) => {
+      let msg;
+      try { msg = JSON.parse(ev.data); } catch { return; }
+      if (msg?.type !== "req" || typeof msg.id !== "string") return;
+
+      const reqBody = String(msg.body ?? "");
+      const response = { type: "res", id: msg.id, body: `Hello, ${reqBody}` };
+      resWs.send(JSON.stringify(response));
+    });
+
+    // ---- UI ----
+    function setOut(i, text, isErr = false) {
+      const el = document.getElementById(`out${i}`);
+      el.textContent = text;
+      el.classList.toggle("err", isErr);
+    }
+
+    async function handleSend(i) {
+      const val = document.getElementById(`in${i}`).value;
+      setOut(i, "送信中…");
+      try {
+        const res = await sendRequest(val);
+        setOut(i, res);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        setOut(i, msg, true);
+      }
+    }
+
+    document.querySelectorAll("button[data-send]").forEach(btn => {
+      btn.addEventListener("click", () => handleSend(btn.dataset.send));
+    });
+
+    document.getElementById("sendAll").addEventListener("click", async () => {
+      // 並行送信（同時に投げる）
+      await Promise.allSettled([handleSend(1), handleSend(2), handleSend(3)]);
+    });
+  </script>
+</body>
+</html>

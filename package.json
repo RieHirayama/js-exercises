@@ -24,6 +24,7 @@
   },
   "type": "module",
   "dependencies": {
-    "acorn": "^8.14.1"
+    "acorn": "^8.14.1",
+    "ws": "^8.18.3"
   }
 }

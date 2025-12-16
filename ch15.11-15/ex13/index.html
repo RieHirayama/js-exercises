@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <title>Ollama Chat (stream)</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 900px; margin: 0 auto; padding: 16px; }
+      .row { display: flex; gap: 12px; align-items: flex-end; }
+      input, textarea, button { font: inherit; }
+      textarea { flex: 1; min-height: 80px; padding: 12px; border: 1px solid #ccc; border-radius: 10px; resize: vertical; }
+      #chat { border: 1px solid #ccc; border-radius: 10px; padding: 12px; height: 420px; overflow: auto; background: #fafafa; margin-bottom: 20px; }
+      .msg { padding: 10px 12px; border-radius: 12px; margin: 8px 0; white-space: pre-wrap; width: fit-content; max-width: 70%;}
+      .user { background: #e8f1ff; margin-left: auto; }
+      .assistant { background: #fff; border: 1px solid #eee; }
+      .meta { color: #555; font-size: 12px; margin-top: 6px; }
+      .warn { color: #b00020; }
+      #send { padding: 12px 28px; background: #4a90e2; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 16px; transition: all 0.3s; white-space: nowrap; }
+      #send:hover { background: #357ae8; transform: scale(1.05); }
+      #send:active { transform: scale(0.98); }
+    </style>
+    <script type="module" src="./index.js"></script>
+  </head>
+  <body>
+    <h1>Ollama Chat 逐次表示アプリ</h1>
+
+    <div id="chat" aria-live="polite"></div>
+
+    <div class="row">
+      <textarea id="prompt" placeholder="メッセージを入力・・・"></textarea>
+      <button id="send">送信</button>
+    </div>
+
+  </body>
+</html>

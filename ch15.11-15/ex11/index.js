@@ -1,0 +1,269 @@
+// フラクタル図形の表示と探索を行うWebアプリケーション（本P.610の例15-15をシェルピンスキーのギャスケット用に修正）
+class Tile {
+  constructor(x, y, width, height) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+  }
+
+  static *tiles(width, height, numRows, numCols) {
+    let columnWidth = Math.ceil(width / numCols);
+    let rowHeight = Math.ceil(height / numRows);
+
+    for (let row = 0; row < numRows; row++) {
+      let tileHeight = (row <numRows-1)
+        ? rowHeight
+        : height - rowHeight * (numRows - 1);
+      for (let col = 0; col < numCols; col++) {
+        let tileWidth = (col < numCols - 1)
+          ? columnWidth
+          : width - columnWidth * (numCols - 1);
+
+        yield new Tile(col * columnWidth, row * rowHeight, tileWidth, tileHeight);
+      }
+    }
+  }
+}
+
+class WorkerPool {
+  constructor(numWorkers, workerSource) {
+    this.idleWorkers = [];
+    this.workQueue = [];
+    this.WorkerMap = new Map();
+
+    for (let i = 0; i < numWorkers; i++) {
+      let worker = new Worker(workerSource);
+      worker.onmessage = message => {
+        this._workerDone(worker, null, message.data);
+      };
+      worker.onerror = error => {
+        this._workerDone(worker, error, null);
+      };
+      this.idleWorkers[i] = worker;
+    }
+  }
+
+  _workerDone(worker, error, response) {
+    let [resolver, rejector] = this.WorkerMap.get(worker);
+    this.WorkerMap.delete(worker);
+
+    if (this.workQueue.length === 0) {
+      this.idleWorkers.push(worker);
+    } else {
+      let [work, resolver, rejector] = this.workQueue.shift();
+      this._startWorkerTask(worker, [resolver, rejector]);
+      worker.postMessage(work);
+    }
+    error === null ? resolver(response) : rejector(error);
+  }
+
+  addWork(work) {
+    return new Promise((resolve, reject) => {
+      if (this.idleWorkers.length > 0) {
+        let worker = this.idleWorkers.pop();
+        this.WorkerMap.set(worker, [resolve, reject]);
+        worker.postMessage(work);
+      } else {
+        this.workQueue.push([work, resolve, reject]);
+      }
+    });
+  }
+}
+
+
+class PageState {
+  static initialState() {
+    let s = new PageState();
+    s.cx = -0.5;
+    s.cy = 0;
+    s.perPixel = 3 / window.innerHeight;
+    return s;
+  }
+
+  static fromURL(url) {
+    let s = new PageState();
+    let u = new URL(url);
+    s.cx = parseFloat(u.searchParams.get("cx"));
+    s.cy = parseFloat(u.searchParams.get("cy"));
+    s.perPixel = parseFloat(u.searchParams.get("pp"));
+    return (isNaN(s.cx) || isNaN(s.cy) || isNaN(s.perPixel))
+      ? null
+      : s;
+  }
+
+  toURL() {
+    let u = new URL(window.location);
+    u.searchParams.set("cx", this.cx);
+    u.searchParams.set("cy", this.cy);
+    u.searchParams.set("pp", this.perPixel);
+    return u.href;
+  }
+}
+
+const ROWS = 3, COLS = 4, NUMWORKERS = navigator.hardwareConcurrency || 2 ;
+
+class MandelbrotCanvas {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.context = canvas.getContext("2d");
+    this.workerPool = new WorkerPool(NUMWORKERS, "sierpinskiWorker.js");
+
+    this.tiles = null;
+    this.pendingRenders = null;
+    this.wantsRerender = false;
+    this.resizeTimer = null;
+    this.colorTable = null;
+
+    this.canvas.addEventListener("pointerdown", e => this.handlePointer(e));
+    window.addEventListener("keydown", e => this.handleKey(e));
+    window.addEventListener("resize", e => this.handleResize(e));
+    window.addEventListener("popstate", e => this.setState(e.state, false));
+
+    this.state = PageState.fromURL(window.location) || PageState.initialState();
+
+    history.replaceState(this.state, "", this.state.toURL());
+
+    this.setSize();
+
+    this.render();
+  }
+
+  setSize() {
+    this.width = this.canvas.width = window.innerWidth;
+    this.height = this.canvas.height = window.innerHeight;
+    this.tiles = [...Tile.tiles(this.width, this.height, ROWS, COLS)];
+  }
+
+  setState(f, save = true) {
+    if (typeof f === "function") {
+      f(this.state);
+    } else {
+      for(let property in f) {
+        this.state[property] = f[property];
+      }
+    }
+
+    this.render();
+
+    if (save) {
+      history.pushState(this.state, "", this.state.toURL());
+    }
+  }
+
+  render() {
+    if (this.pendingRenders) {
+      this.wantsRerender = true;
+      return;
+    }
+
+    let { cx, cy, perPixel } = this.state;
+    let x0 = cx - perPixel * this.width / 2;
+    let y0 = cy - perPixel * this.height / 2;
+
+    let promises = this.tiles.map(tile =>  this.workerPool.addWork({
+      tile: tile,
+      x0: x0 + tile.x * perPixel,
+      y0: y0 + tile.y * perPixel,
+      perPixel: perPixel
+    }));
+
+    this.pendingRenders = Promise.all(promises).then(responses => {
+      this.canvas.style.transform = "";
+      for(let r of responses) {
+        this.context.putImageData(r.imageData, r.tile.x, r.tile.y);
+      }
+    })
+    .catch((reason) => {
+      console.error("Promise rejected in render():", reason);
+    })
+    .finally(() => {
+      this.pendingRenders = null;
+      if (this.wantsRerender) {
+        this.wantsRerender = false;
+        this.render();
+      }
+    });
+  }
+
+  handleResize(event) {
+    if (this.resizeTimer) clearTimeout(this.resizeTimer);
+    this.resizeTimer = setTimeout(() => {
+      this.resizeTimer = null;
+      this.setSize();
+      this.render();
+    }, 200);
+  }
+
+  handleKey(event) {
+    switch(event.key) {
+      case "Escape":
+        this.setState(PageState.initialState());
+        break;
+      case "o":
+        this.setState(s => s.perPixel *= 2);
+        break;
+      case "ArrowUp":
+        this.setState(s => s.cy -= this.height/10 * s.perPixel);
+        break;
+      case "ArrowDown":
+        this.setState(s => s.cy += this.height/10 * s.perPixel);
+        break;
+      case "ArrowLeft":
+        this.setState(s => s.cx -= this.width/10 * s.perPixel);
+        break;
+      case "ArrowRight":
+        this.setState(s => s.cx += this.width/10 * s.perPixel);
+        break;
+    }
+  }
+
+  handlePointer(event) {
+    const x0 = event.clientX, y0 = event.clientY, t0 = Date.now();
+
+    const pointerMoveHandler = event => {
+      let dx = event.clientX - x0, dy = event.clientY - y0, dt = Date.now() - t0;
+
+      if (dx > 10 || dy > 10 || dt > 500) {
+        this.canvas.style.transform = `translate(${dx}px, ${dy}px)`;
+      }
+    };
+
+    const pointerUpHandler = event => {
+      this.canvas.removeEventListener("pointermove", pointerMoveHandler);
+      this.canvas.removeEventListener("pointerup", pointerUpHandler);
+
+      const dx = event.clientX - x0, dy = event.clientY - y0, dt = Date.now() - t0;
+      const { cx, cy, perPixel } = this.state;
+
+      if (dx > 10 || dy > 10 || dt > 500) {
+        this.setState({
+          cx: cx - dx * perPixel,
+          cy: cy - dy * perPixel
+        });
+      } else {
+        let cdx = x0 - this.width / 2;
+        let cdy = y0 - this.height / 2;
+
+        this.canvas.style.transform = `translate(${-cdx*2}px, ${-cdy*2}px) scale(2)`;
+
+        this.setState(s => {
+          s.cx += cdx * s.perPixel;
+          s.cy += cdy * s.perPixel;
+          s.perPixel /= 2;
+        });
+      }
+    };
+
+    this.canvas.addEventListener("pointermove", pointerMoveHandler);
+    this.canvas.addEventListener("pointerup", pointerUpHandler);
+  }
+
+}
+
+let canvas = document.createElement("canvas");
+document.body.append(canvas);
+document.body.style = "margin: 0";
+canvas.style.width = "100%";
+canvas.style.height = "100%";
+new MandelbrotCanvas(canvas);
