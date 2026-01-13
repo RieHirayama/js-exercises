@@ -1,0 +1,4 @@
+Worker 1 execution time: 7.832s
+Worker 0 execution time: 12.114s
+Total execution time: 12.119s
+Fibonacci number: 1836311902

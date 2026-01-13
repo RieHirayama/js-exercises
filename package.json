@@ -25,6 +25,10 @@
   "type": "module",
   "dependencies": {
     "acorn": "^8.14.1",
+    "express": "^5.2.1",
+    "iconv-lite": "^0.7.2",
+    "pngjs": "^7.0.0",
+    "supertest": "^7.2.2",
     "ws": "^8.18.3"
   }
 }
