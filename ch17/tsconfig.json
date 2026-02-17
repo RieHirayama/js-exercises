@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ES2020",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "rootDir": "ex09",
+    "outDir": "ex09/dist"
+  },
+  "include": ["ex09/**/*.ts"]
+}
